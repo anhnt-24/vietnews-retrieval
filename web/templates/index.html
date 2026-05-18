@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vietnamese News Search — Hybrid IR Demo</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<nav class="navbar">
+    <div class="container nav-container">
+        <a href="/" class="logo">News Search</a>
+    </div>
+</nav>
+
+<main class="container">
+
+<div class="page-header">
+    <h1>Vietnamese News Search</h1>
+    <p>Hybrid BM25 + LSA / LSI / LDA</p>
+</div>
+
+<div class="search-card">
+    <form method="get" action="/">
+
+        <div class="search-field">
+            <input type="text" name="q" value="{{ selected_query }}"
+                   placeholder="Nhập truy vấn tìm kiếm..." class="search-input" autofocus>
+            <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+        </div>
+
+        <div class="radio-row">
+            {% for key, m in models_meta.items() %}
+            <label class="radio-card {% if model_key == key %}active{% endif %} {% if not status[key] %}disabled{% endif %}">
+                <input type="radio" name="model" value="{{ key }}"
+                       {% if model_key == key %}checked{% endif %}
+                       {% if not status[key] %}disabled{% endif %}>
+                <div class="radio-body">
+                    <div class="radio-title">{{ m.title }}</div>
+                </div>
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="controls-row">
+            <label class="control">
+                <span>α (BM25 weight): <strong id="alpha-display">{{ '%.2f' % alpha }}</strong></span>
+                <input type="range" name="alpha" min="0" max="1" step="0.05"
+                       value="{{ alpha }}" id="alpha-input">
+            </label>
+
+            <label class="control narrow">
+                <span>top-k</span>
+                <input type="number" name="k" min="1" max="50" value="{{ top_k }}" class="num-input">
+            </label>
+        </div>
+
+        <div class="query-chips">
+            <span class="chip-label">Gợi ý:</span>
+            {% for query in queries %}
+            <a href="/?q={{ query|urlencode }}&model={{ model_key }}&alpha={{ alpha }}&k={{ top_k }}"
+               class="chip {% if selected_query == query %}active{% endif %}">{{ query }}</a>
+            {% endfor %}
+        </div>
+
+    </form>
+</div>
+
+{% if load_error %}
+<div class="alert warning">
+    <strong>Không load được model {{ model_key|upper }}:</strong> {{ load_error }}
+    <br><small>Đảm bảo <code>{{ model_key }}_models.zip</code> nằm ở thư mục gốc project.</small>
+</div>
+{% endif %}
+
+{% if selected_query and not load_error %}
+<div class="results-section">
+    <div class="results-header">
+        <h2>Kết quả: <em>"{{ selected_query }}"</em></h2>
+        <div class="results-meta">
+            <span class="badge">{{ meta.title }}</span>
+            <span class="badge">α = {{ '%.2f' % alpha }}</span>
+            <span class="badge">top-k = {{ top_k }}</span>
+        </div>
+    </div>
+
+    {% if results %}
+    <div class="results-list">
+        {% for item in results %}
+        <div class="result-card hybrid">
+            <div class="rank-badge large">{{ item.rank }}</div>
+            <div class="result-body">
+                <h3>{{ item.title_html|safe }}</h3>
+                {% if item.snippet %}<p class="snippet">{{ item.snippet_html|safe }}</p>{% endif %}
+
+                <div class="score-row">
+                    <span class="score-pill bm25">BM25: <strong>{{ '%.3f' % item.bm25 }}</strong></span>
+                    <span class="score-pill semantic">{{ meta.semantic_label }}: <strong>{{ '%.3f' % item.semantic }}</strong></span>
+                    <span class="score-pill hybrid">Hybrid: <strong>{{ '%.3f' % item.hybrid }}</strong></span>
+                </div>
+
+                {% if item.url %}
+                <div class="meta"><span class="url">{{ item.url|truncate(90) }}</span></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">Không có kết quả — query trống hoặc bị filter sạch sau preprocessing.</div>
+    {% endif %}
+</div>
+{% endif %}
+
+</main>
+
+<script>
+    // Live alpha display
+    const alphaInput = document.getElementById('alpha-input');
+    const alphaDisplay = document.getElementById('alpha-display');
+    if (alphaInput && alphaDisplay) {
+        const sync = () => alphaDisplay.textContent = parseFloat(alphaInput.value).toFixed(2);
+        alphaInput.addEventListener('input', sync);
+    }
+
+    // Radio cards: click toàn bộ card
+    document.querySelectorAll('.radio-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const radio = card.querySelector('input[type=radio]');
+            if (radio && !radio.disabled) {
+                radio.checked = true;
+                document.querySelectorAll('.radio-card').forEach(c => c.classList.remove('active'));
+                card.classList.add('active');
+            }
+        });
+    });
+</script>
+</body>
+</html>

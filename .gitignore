@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Trained model artifacts (regenerate from notebooks)
+*.zip
+saved_models/
+*.pkl
+
+# Claude Code session state
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
