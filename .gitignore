@@ -19,3 +19,9 @@ saved_models/
 # OS
 .DS_Store
 Thumbs.db
+
+# Slidev / Node
+node_modules/
+slides/node_modules/
+slides/dist/
+slides/.slidev/
