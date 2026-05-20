@@ -12,7 +12,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from web import search_lda, search_lsa, search_lsi
+from web import search_lda, search_lsi, search_nmf
 from web.common import EXAMPLE_QUERIES, truncate
 
 
@@ -25,9 +25,9 @@ templates.env.filters['truncate'] = lambda s, length=80: truncate(s, length)
 
 
 MODELS = {
-    'lsa': search_lsa,
     'lsi': search_lsi,
     'lda': search_lda,
+    'nmf': search_nmf,
 }
 
 
@@ -49,7 +49,7 @@ def parse_top_k(s: str | None, default: int = 10) -> int:
         return default
 
 
-def parse_model(s: str | None, default: str = 'lsa') -> str:
+def parse_model(s: str | None, default: str = 'nmf') -> str:
     return s if s in MODELS else default
 
 
@@ -57,7 +57,7 @@ def parse_model(s: str | None, default: str = 'lsa') -> str:
 async def home(
     request: Request,
     q: str = '',
-    model: str = 'lsa',
+    model: str = 'nmf',
     alpha: str = '',
     k: str = '',
 ):

@@ -1,4 +1,4 @@
-# Vietnamese News Retrieval — Hybrid BM25 + {LSA, LSI, LDA}
+# Vietnamese News Retrieval — Hybrid BM25 + {LSI, LDA, NMF}
 
 Hệ thống tìm kiếm tin tức tiếng Việt trên 20k bài VietNews, kết hợp **BM25** (lexical) với 3 mô hình semantic khác nhau.
 
@@ -7,16 +7,16 @@ Hệ thống tìm kiếm tin tức tiếng Việt trên 20k bài VietNews, kết
 ```
 ir/
 ├── notebook/
-│   ├── lsa.ipynb           # BM25 + LSA  (TF-IDF + TruncatedSVD)
 │   ├── lsi.ipynb           # BM25 + LSI  (Log-Entropy + TruncatedSVD - Deerwester 1990)
-│   └── lda.ipynb           # BM25 + LDA  (CountVectorizer + LatentDirichletAllocation)
+│   ├── lda.ipynb           # BM25 + LDA  (CountVectorizer + LatentDirichletAllocation)
+│   └── nmf.ipynb           # BM25 + NMF  (TF-IDF + Non-negative Matrix Factorization)
 │
 ├── web/
 │   ├── main.py             # FastAPI app, 1 route GET /
 │   ├── common.py           # preprocess, scoring, highlight
-│   ├── search_lsa.py       # load lsa_models.zip + search()
 │   ├── search_lsi.py       # load lsi_models.zip + search()
 │   ├── search_lda.py       # load lda_models.zip + search()
+│   ├── search_nmf.py       # load nmf_models.zip + search()
 │   ├── templates/index.html
 │   └── static/css/style.css
 │
@@ -43,15 +43,15 @@ pip install -r requirements.txt
 
 ### Bước 1 — train models (lần đầu)
 
-Mở `notebook/lsa.ipynb`, `notebook/lsi.ipynb`, `notebook/lda.ipynb` rồi `Run All` từng notebook.
+Mở `notebook/lsi.ipynb`, `notebook/lda.ipynb`, `notebook/nmf.ipynb` rồi `Run All` từng notebook.
 Mỗi notebook sẽ tạo `saved_models/<model>_models.zip` ở thư mục gốc.
 
 Sau đó move 3 zip ra root project:
 
 ```bash
-mv saved_models/lsa_models.zip lsa_models.zip
 mv saved_models/lsi_models.zip lsi_models.zip
 mv saved_models/lda_models.zip lda_models.zip
+mv saved_models/nmf_models.zip nmf_models.zip
 ```
 
 ### Bước 2 — chạy web demo
@@ -63,7 +63,7 @@ uvicorn web.main:app --reload
 Mở http://127.0.0.1:8000
 
 Trên trang demo có:
-- **Radio** chọn 1 trong 3 model (BM25+LSA / BM25+LSI / BM25+LDA)
+- **Radio** chọn 1 trong 3 model (BM25+LSI / BM25+LDA / BM25+NMF)
 - **Slider α**: trọng số BM25 (0 = chỉ semantic, 1 = chỉ BM25), mặc định lấy `best_alpha` đã tìm được trong notebook
 - **Top-k**: số kết quả trả về
 - Mỗi kết quả hiển thị **3 điểm** (BM25, Semantic, Hybrid) và **tô đậm keyword** trong title + snippet
@@ -80,9 +80,9 @@ Trong đó `·̃` là điểm đã min-max chuẩn hóa về `[0, 1]` trên toà
 
 | Notebook | Vector hóa | Semantic model | Sweep |
 |---|---|---|---|
-| `lsa.ipynb` | TF-IDF (sublinear) | TruncatedSVD | `n_components ∈ {50, 100, 200, 300}` |
 | `lsi.ipynb` | Log-entropy weighting (Deerwester 1990) | TruncatedSVD | `n_components ∈ {50, 100, 200, 300}` |
 | `lda.ipynb` | Count matrix | LatentDirichletAllocation | `n_topics ∈ {10, 20, 50, 100}` |
+| `nmf.ipynb` | TF-IDF (sublinear) | Non-negative Matrix Factorization (W,H ≥ 0) | `n_components ∈ {50, 100, 200, 300}` |
 
 ### Đánh giá
 

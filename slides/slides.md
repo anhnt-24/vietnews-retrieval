@@ -1,6 +1,6 @@
 ---
 theme: seriph
-title: Vietnamese News Retrieval - Hybrid BM25 + LSA, LSI, LDA
+title: Vietnamese News Retrieval - Hybrid BM25 + LSI, LDA, NMF
 info: Báo cáo đồ án Truy hồi thông tin
 class: text-center
 highlighter: shiki
@@ -12,7 +12,7 @@ mdc: true
 
 # Truy hồi tin tức tiếng Việt
 
-## Hybrid BM25 + LSA · LSI · LDA
+## Hybrid BM25 + LSI · LDA · NMF
 
 <br>
 
@@ -97,9 +97,9 @@ So sánh **3 mô hình semantic kinh điển**:
 
 | Model | Phương pháp |
 |---|---|
-| **LSA** | TF-IDF + SVD |
 | **LSI** | Log-Entropy + SVD |
 | **LDA** | Topic modeling sinh |
+| **NMF** | TF-IDF + Phân rã không âm |
 
 </div>
 
@@ -138,11 +138,11 @@ $$\text{BM25}(d,q) = \sum_{t \in q} \text{IDF}(t) \cdot \frac{tf_{t,d}\,(k_1+1)}
 
 ---
 
-# 2.2. LSA
+# 2.2. NMF
 
 ### Ý tưởng
 
-Giả định những từ **hay xuất hiện cùng nhau** trong các tài liệu thì có nghĩa gần nhau. Bằng cách gom các từ đồng nghĩa thành các "khái niệm ẩn", LSA giúp tìm đúng tài liệu kể cả khi query và tài liệu **dùng từ khác nhau nhưng cùng ý**.
+Mỗi tài liệu được mô tả như **tổng (không âm) của các topic ẩn**, trong đó mỗi topic là một **nhóm từ tích cực hay xuất hiện cùng nhau**. NMF (Non-negative Matrix Factorization) áp ràng buộc cả hai phía của phép phân rã đều ≥ 0 — vì vậy mỗi topic chỉ là *cộng dồn các từ*, đọc top-N từ trong topic là hiểu ngay ý nghĩa (vd: *tiền · lãi suất · ngân hàng* = chủ đề kinh tế). Tài liệu càng "chứa nhiều" từ của một topic → cường độ topic đó trong tài liệu càng cao.
 
 ### Bước 1: Vector hóa TF-IDF
 
@@ -152,33 +152,39 @@ $$w_{t,d} = (1 + \log tf_{t,d}) \cdot \log\frac{N}{df_t}$$
 
 </div>
 
+<div class="text-sm opacity-80 mt-4">
+
+TF-IDF đảm bảo đầu vào không âm — điều kiện tiên quyết của NMF — và đã hạ trọng số term phổ biến, giúp NMF tìm topic phân biệt tốt hơn so với Count thuần.
+
+</div>
+
 ---
 
-# 2.2. LSA
+# 2.2. NMF
 
-### Bước 2: Truncated SVD
+### Bước 2: Phân rã không âm
 
 <div class="mt-2">
 
-$$A_{m \times n} \approx U_k \, \Sigma_k \, V_k^T$$
+$$A_{m \times n} \approx W_{m \times k} \cdot H_{k \times n}, \qquad W \geq 0,\ H \geq 0$$
 
 </div>
 
 <div class="text-sm">
 
-- $A$ — ma trận **term–document** gốc ($m$ từ × $n$ tài liệu)
-- $U_k$ — ma trận **từ × khái niệm** ($m \times k$): mỗi dòng cho biết một từ liên quan đến $k$ khái niệm ẩn ra sao
-- $\Sigma_k$ — ma trận đường chéo chứa **độ quan trọng** của $k$ khái niệm (giá trị suy biến giảm dần)
-- $V_k^T$ — ma trận **khái niệm × tài liệu** ($k \times n$): mỗi cột cho biết một tài liệu phân bố trên $k$ khái niệm ra sao
-- $k$ — số chiều giữ lại (rất nhỏ so với $m, n$ → khử nhiễu, giữ ngữ nghĩa chính)
+- $A$ — ma trận **term–document** TF-IDF ($m$ từ × $n$ tài liệu, mọi phần tử ≥ 0)
+- $W$ — ma trận **từ × topic** ($m \times k$): cường độ mỗi từ trong $k$ topic (không âm)
+- $H$ — ma trận **topic × tài liệu** ($k \times n$): cường độ mỗi topic trong mỗi tài liệu (không âm)
+- Tối ưu: $\displaystyle\min_{W, H \geq 0} \|A - WH\|_F^2$ &nbsp;(Frobenius norm, giải bằng *Coordinate Descent*)
+- $k$ — số topic giữ lại (rất nhỏ so với $m, n$)
 
 </div>
 
-### Bước 3: Cosine similarity trong không gian ẩn
+### Bước 3: Cosine similarity trong không gian topic
 
 <div class="mt-2">
 
-$$\text{sim}_{\text{LSA}}(d, q) = \frac{\vec{d}_k \cdot \vec{q}_k}{\|\vec{d}_k\|\,\|\vec{q}_k\|}$$
+$$\text{sim}_{\text{NMF}}(d, q) = \frac{\vec{h}_d \cdot \vec{h}_q}{\|\vec{h}_d\|\,\|\vec{h}_q\|}, \quad \vec{h}_q = \text{nmf.transform}(\vec{q}_{\text{tfidf}})$$
 
 </div>
 
@@ -188,7 +194,7 @@ $$\text{sim}_{\text{LSA}}(d, q) = \frac{\vec{d}_k \cdot \vec{q}_k}{\|\vec{d}_k\|
 
 ### Ý tưởng
 
-Cùng cách làm với LSA (đều dùng SVD để tìm khái niệm ẩn), nhưng **cân trọng số từ tốt hơn**. Ví dụ: từ *"lãi suất"* chỉ xuất hiện trong bài về kinh tế → tăng trọng số (rất phân biệt). Trong khi từ *"người", "ngày", "có"* xuất hiện đều trong mọi bài → giảm trọng số (không phân biệt được gì). Nhờ vậy không gian khái niệm thu được phản ánh đúng những từ **thực sự đặc trưng cho chủ đề**.
+Trước khi tìm khái niệm ẩn, **cân lại trọng số mỗi từ theo mức độ phân biệt của nó**: từ chỉ xuất hiện ở một vài tài liệu (vd: *"lãi suất"* — chỉ thấy trong bài kinh tế) được đẩy lên cao vì chúng phân biệt chủ đề tốt; từ rải đều khắp mọi tài liệu (vd: *"người", "ngày", "có"*) bị hạ xuống thấp vì không nói lên điều gì. Sau khi cân trọng số, ma trận được nén lại để gom các từ thường đi cùng nhau thành cùng khái niệm — kết quả phản ánh đúng những từ **thực sự đặc trưng cho chủ đề**.
 
 ### Bước 1a: Local weight (trọng số nội tại)
 
@@ -460,7 +466,7 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 ---
 
-# 3.4. Kết quả BM25 + LSA
+# 3.4. Kết quả BM25 + NMF
 
 <div class="grid grid-cols-2 gap-3">
 
@@ -468,7 +474,7 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 ### Heatmap 6 metrics
 
-<img src="/lsa_1.png" class="rounded shadow w-full" />
+<img src="/nmf_1.png" class="rounded shadow w-full" />
 
 </div>
 
@@ -478,21 +484,22 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 | Tham số | Giá trị |
 |---|---|
-| **Best α** | **0.5** |
-| **Best k** | **1** |
-| **Best NDCG** | **0.6000** |
+| **Best α** | **0.8** |
+| **Best k** | **3** |
+| **Best NDCG** | **0.5754** |
 | n_components | 200 (default) |
 
 ### So sánh n_components
 
-| $k$ | best α | NDCG@10 | Explained var |
+| $k$ | best α | NDCG@10 | Recon err |
 |---|---|---|---|
-| 50  | 0.7 | 0.5592 | 14.31% |
-| 100 | 0.9 | 0.5530 | 19.18% |
-| 200 | 0.7 | 0.5744 | 25.73% |
-| **300** | **0.6** | **0.5818** | 30.74% |
+| 50  | 0.9 | 0.5512 | 128.82 |
+| 100 | 1.0 | 0.5416 | 125.82 |
+| 200 | 0.9 | 0.5524 | 121.58 |
+| **300** | **0.8** | **0.5541** | **118.32** |
 
-→ NDCG tăng dần theo n_components, nhưng fit time cũng tăng tuyến tính
+→ Recon error giảm dần theo k, NDCG ổn định ở 0.55<br>
+→ Nhưng fit time tăng *rất mạnh* (89 s → 1432 s)
 
 </div>
 
@@ -500,7 +507,7 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 ---
 
-# 3.4. Kết quả BM25 + LSA (tt)
+# 3.4. Kết quả BM25 + NMF (tt)
 
 <div class="grid grid-cols-2 gap-4">
 
@@ -508,7 +515,7 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 ### NDCG theo α & sweep n_components
 
-<img src="/lsa_2.png" class="rounded shadow w-full" />
+<img src="/nmf_2.png" class="rounded shadow w-full" />
 
 </div>
 
@@ -516,14 +523,14 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 ### Per-query breakdown
 
-<img src="/lsa_3.png" class="rounded shadow w-full" />
+<img src="/nmf_3.png" class="rounded shadow w-full" />
 
 <div class="text-xs opacity-75 mt-2">
 
 **Nhận xét:**
-- 6 query (stock, sports, automotive, politics, fashion, travel) có 0 relevant doc → metric = 0
-- 9 query còn lại: NDCG/MRR ≈ 1.0 cho commodity, health, entertainment...
-- Hybrid với α = 0.5 cân bằng tốt giữa BM25 và LSA
+- α* lệch về **BM25 (0.8–0.9)** → semantic component NMF có đóng góp nhỏ
+- NMF topic không âm dễ diễn giải (ưu điểm) nhưng kém phân biệt cho retrieval ranking
+- Fit time **rất chậm** (200 chiều ≈ 13 phút) — đánh đổi cho khả năng giải thích
 
 </div>
 
@@ -565,8 +572,8 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 | **200** | **0.4** | **0.5766** | 25.09% |
 | 300 | 0.6 | 0.5693 | 29.94% |
 
-→ Khác LSA: best ở **n=200** (không phải 300)<br>
-→ α* lệch về **semantic** hơn (0.4 vs 0.5 của LSA)
+→ NDCG đỉnh ở **n=200**, không cần tăng tiếp<br>
+→ α* lệch về **semantic** (0.4) → log-entropy cho semantic vector chất lượng cao
 
 </div>
 
@@ -594,10 +601,10 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 <div class="text-xs opacity-75 mt-2">
 
-**Nhận xét LSI vs LSA:**
-- NDCG đỉnh ngang nhau: **0.6000**
-- LSI ưa **α nhỏ hơn** (0.4) → log-entropy weighting cho semantic vector chất lượng hơn TF-IDF
-- LSI cần ít chiều hơn (200 thay vì 300) → tiết kiệm thời gian
+**Nhận xét LSI:**
+- NDCG đỉnh **0.6000** ở α=0.4, k=1
+- α* lệch về **semantic** (0.4) → log-entropy weighting cho vector ngữ nghĩa chất lượng cao
+- Đỉnh ở n=200 chiều → tiết kiệm thời gian fit (~9 s)
 
 </div>
 
@@ -696,15 +703,15 @@ layout: section
 
 <div class="text-sm mt-4">
 
-| Metric @ k=10 | **BM25 + LSA** | **BM25 + LSI** | **BM25 + LDA** |
+| Metric @ k=10 | **BM25 + LSI** | **BM25 + LDA** | **BM25 + NMF** |
 |---|:---:|:---:|:---:|
-| Best **α*** | 0.7 | **0.4** | 1.0 |
-| **Precision@10** | 0.3867 | **0.4000** | **0.4000** |
-| **Recall@10** | 0.0584 | **0.0750** | 0.0586 |
-| **F1@10** | 0.0506 | **0.0600** | 0.0510 |
-| **MAP@10** | **0.5427** | 0.5419 | 0.4977 |
-| **MRR@10** | **0.6000** | **0.6000** | 0.5556 |
-| **NDCG@10** | 0.5744 | **0.5766** | 0.5416 |
+| Best **α*** | **0.4** | 1.0 | 0.9 |
+| **Precision@10** | **0.4000** | **0.4000** | 0.3867 |
+| **Recall@10** | **0.0750** | 0.0586 | 0.0586 |
+| **F1@10** | **0.0600** | 0.0510 | 0.0509 |
+| **MAP@10** | **0.5419** | 0.4977 | 0.5138 |
+| **MRR@10** | **0.6000** | 0.5556 | **0.5667** |
+| **NDCG@10** | **0.5766** | 0.5416 | 0.5524 |
 
 </div>
 
@@ -715,25 +722,14 @@ layout: section
 
 <div class="grid grid-cols-3 gap-4 mt-6">
 
-<div class="border-l-4 border-blue-500 pl-3">
-
-### BM25 + LSA
-**Khá tốt**
-
-- Cải thiện rõ so với BM25 thuần
-- Cho kết quả tốt ở phần lớn truy vấn
-- Tốc độ huấn luyện vừa phải
-
-</div>
-
 <div class="border-l-4 border-teal-500 pl-3">
 
 ### BM25 + LSI
 **Tốt nhất**
 
-- Đứng đầu ở Precision, Recall, F1, NDCG
-- Cân bằng giữa từ vựng và ngữ nghĩa tốt nhất
-- Huấn luyện nhanh hơn LSA
+- Đứng đầu ở Precision, Recall, F1, MAP, NDCG
+- Log-entropy cân bằng từ vựng và ngữ nghĩa tốt nhất
+- Huấn luyện nhanh (~9 s cho n=200)
 
 </div>
 
@@ -742,9 +738,20 @@ layout: section
 ### BM25 + LDA
 **Kém**
 
-- Không cải thiện được kết quả so với BM25 thuần
-- Thua ở hầu hết các tiêu chí
-- Huấn luyện chậm nhất (gấp ~10 lần)
+- α* = 1.0 → pure BM25 cho kết quả tốt nhất
+- LDA gây hại cho ranking điểm chính xác
+- Huấn luyện chậm (~150 s cho n_topics=50)
+
+</div>
+
+<div class="border-l-4 border-emerald-500 pl-3">
+
+### BM25 + NMF
+**Trung bình**
+
+- Topic không âm dễ diễn giải (ưu điểm riêng)
+- α* = 0.9 → semantic đóng góp rất nhỏ
+- Huấn luyện **rất chậm** (~13 phút cho n=200)
 
 </div>
 
