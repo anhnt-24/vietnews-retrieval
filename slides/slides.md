@@ -281,16 +281,6 @@ Quá trình sinh ở trên là **giả định lý thuyết** — thực tế ta
    - Lặp cho đến khi các phân phối ổn định
 4. **Đầu ra**: mỗi tài liệu có một vector $\theta_d \in \mathbb{R}^K$ (tổng các thành phần = 1) biểu diễn tỉ lệ pha trộn chủ đề
 
-### Biểu diễn query
-
-Query $q$ được chiếu sang không gian chủ đề thông qua phép `transform` của LDA → vector $\theta_q \in \mathbb{R}^K$.
-
-<div class="mt-2">
-
-$$\text{sim}_{\text{LDA}}(d, q) = \cos\bigl(\theta_q,\, \theta_d\bigr) = \frac{\theta_q \cdot \theta_d}{\|\theta_q\|\,\|\theta_d\|}$$
-
-</div>
-
 
 ---
 
@@ -342,18 +332,6 @@ layout: section
 
 </div>
 
-<div>
-
-### Thống kê cơ bản
-
-| Chỉ số | Giá trị |
-|---|---|
-| Số tài liệu | **20,000** |
-| Trung bình tokens/doc | **271.5** |
-| Vocab sau tiền xử lý | **87,931 từ** |
-| Dung lượng CSV | ~170 MB |
-
-</div>
 
 </div>
 
@@ -361,31 +339,40 @@ layout: section
 
 # 3.2. Test queries & Ground-truth
 
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-2 gap-6">
 
 <div>
 
 ### 15 query đa lĩnh vực
 
-<div class="text-xs">
+<div class="grid grid-cols-2 gap-x-4" style="font-size: 0.65rem; line-height: 1.1;">
 
-| # | Category | Query (rút gọn) |
-|---|---|---|
-| 1 | weather | thời tiết mưa bão... |
-| 2 | stock | chứng khoán cổ phiếu... |
-| 3 | sports | bóng đá việt nam... |
-| 4 | tech | công nghệ AI trí tuệ... |
-| 5 | commodity | giá vàng hôm nay tăng |
-| 6 | health | dịch covid vaccine |
-| 7 | automotive | xe điện vinfast |
-| 8 | entertainment | ca sĩ nhạc mới |
-| 9 | crime | tội phạm ma túy |
-| 10 | accident | tai nạn giao thông |
-| 11 | olympic | thể thao olympic |
-| 12 | travel | du lịch resort |
-| 13 | education | giáo dục trường học |
-| 14 | politics | chính trị quốc tế |
-| 15 | fashion | thời trang làm đẹp |
+<table style="white-space: nowrap;">
+<thead><tr><th>#</th><th>Category</th><th>Query</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>weather</td><td>thời tiết mưa bão</td></tr>
+<tr><td>2</td><td>stock</td><td>chứng khoán cổ phiếu</td></tr>
+<tr><td>3</td><td>sports</td><td>bóng đá việt nam</td></tr>
+<tr><td>4</td><td>tech</td><td>công nghệ AI</td></tr>
+<tr><td>5</td><td>commodity</td><td>giá vàng hôm nay</td></tr>
+<tr><td>6</td><td>health</td><td>dịch covid vaccine</td></tr>
+<tr><td>7</td><td>automotive</td><td>xe điện vinfast</td></tr>
+<tr><td>8</td><td>entertainment</td><td>ca sĩ nhạc mới</td></tr>
+</tbody>
+</table>
+
+<table style="white-space: nowrap;">
+<thead><tr><th>#</th><th>Category</th><th>Query</th></tr></thead>
+<tbody>
+<tr><td>9</td><td>crime</td><td>tội phạm ma túy</td></tr>
+<tr><td>10</td><td>accident</td><td>tai nạn giao thông</td></tr>
+<tr><td>11</td><td>olympic</td><td>thể thao olympic</td></tr>
+<tr><td>12</td><td>travel</td><td>du lịch resort</td></tr>
+<tr><td>13</td><td>education</td><td>giáo dục trường học</td></tr>
+<tr><td>14</td><td>politics</td><td>chính trị quốc tế</td></tr>
+<tr><td>15</td><td>fashion</td><td>thời trang làm đẹp</td></tr>
+</tbody>
+</table>
 
 </div>
 
@@ -396,19 +383,6 @@ layout: section
 ### Heuristic relevance
 
 Doc $d$ **relevant** với query $q$ ⇔ $d$ chứa **≥ 2 keyword** của $q$ (lowercase match)
-
-### Số doc relevant per query
-
-```text
-weather:        357    crime:         3408
-stock:          0      accident:       607
-sports:         0      olympic:        6
-tech:           4      travel:         1
-commodity:    2602     education:    2591
-health:        386     politics:       0
-automotive:    0       fashion:        0
-entertainment: 149
-```
 
 </div>
 
@@ -480,26 +454,34 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 <div>
 
-### Best config
+<h3 style="font-size:0.95rem; margin-bottom:0.3rem;">Best config</h3>
 
-| Tham số | Giá trị |
-|---|---|
-| **Best α** | **0.8** |
-| **Best k** | **3** |
-| **Best NDCG** | **0.5754** |
-| n_components | 200 (default) |
+<table style="font-size:0.65rem; line-height:1.1; width:100%;">
+<thead><tr><th>Tham số</th><th>Giá trị</th></tr></thead>
+<tbody>
+<tr><td><b>Best α</b></td><td><b>0.8</b></td></tr>
+<tr><td><b>Best k</b></td><td><b>3</b></td></tr>
+<tr><td><b>Best NDCG</b></td><td><b>0.5754</b></td></tr>
+<tr><td>n_components</td><td>200 (default)</td></tr>
+</tbody>
+</table>
 
-### So sánh n_components
+<h3 style="font-size:0.95rem; margin-top:0.6rem; margin-bottom:0.3rem;">So sánh n_components</h3>
 
-| $k$ | best α | NDCG@10 | Recon err |
-|---|---|---|---|
-| 50  | 0.9 | 0.5512 | 128.82 |
-| 100 | 1.0 | 0.5416 | 125.82 |
-| 200 | 0.9 | 0.5524 | 121.58 |
-| **300** | **0.8** | **0.5541** | **118.32** |
+<table style="font-size:0.65rem; line-height:1.1; width:100%;">
+<thead><tr><th>k</th><th>best α</th><th>NDCG@10</th><th>Recon err</th></tr></thead>
+<tbody>
+<tr><td>50</td><td>0.9</td><td>0.5512</td><td>128.82</td></tr>
+<tr><td>100</td><td>1.0</td><td>0.5416</td><td>125.82</td></tr>
+<tr><td>200</td><td>0.9</td><td>0.5524</td><td>121.58</td></tr>
+<tr><td><b>300</b></td><td><b>0.8</b></td><td><b>0.5541</b></td><td><b>118.32</b></td></tr>
+</tbody>
+</table>
 
+<div style="font-size:0.65rem; line-height:1.2; margin-top:0.4rem; opacity:0.85;">
 → Recon error giảm dần theo k, NDCG ổn định ở 0.55<br>
-→ Nhưng fit time tăng *rất mạnh* (89 s → 1432 s)
+→ Nhưng fit time tăng <i>rất mạnh</i> (89 s → 1432 s)
+</div>
 
 </div>
 
@@ -554,26 +536,34 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 <div>
 
-### Best config
+<h3 style="font-size:0.95rem; margin-bottom:0.3rem;">Best config</h3>
 
-| Tham số | Giá trị |
-|---|---|
-| **Best α** | **0.4** |
-| **Best k** | **1** |
-| **Best NDCG** | **0.6000** |
-| n_components | 200 (default) |
+<table style="font-size:0.65rem; line-height:1.1; width:100%;">
+<thead><tr><th>Tham số</th><th>Giá trị</th></tr></thead>
+<tbody>
+<tr><td><b>Best α</b></td><td><b>0.4</b></td></tr>
+<tr><td><b>Best k</b></td><td><b>1</b></td></tr>
+<tr><td><b>Best NDCG</b></td><td><b>0.6000</b></td></tr>
+<tr><td>n_components</td><td>200 (default)</td></tr>
+</tbody>
+</table>
 
-### So sánh n_components
+<h3 style="font-size:0.95rem; margin-top:0.6rem; margin-bottom:0.3rem;">So sánh n_components</h3>
 
-| $k$ | best α | NDCG@10 | Explained var |
-|---|---|---|---|
-| 50  | 0.9 | 0.5512 | 13.88% |
-| 100 | 0.6 | 0.5722 | 18.68% |
-| **200** | **0.4** | **0.5766** | 25.09% |
-| 300 | 0.6 | 0.5693 | 29.94% |
+<table style="font-size:0.65rem; line-height:1.1; width:100%;">
+<thead><tr><th>k</th><th>best α</th><th>NDCG@10</th><th>Explained var</th></tr></thead>
+<tbody>
+<tr><td>50</td><td>0.9</td><td>0.5512</td><td>13.88%</td></tr>
+<tr><td>100</td><td>0.6</td><td>0.5722</td><td>18.68%</td></tr>
+<tr><td><b>200</b></td><td><b>0.4</b></td><td><b>0.5766</b></td><td>25.09%</td></tr>
+<tr><td>300</td><td>0.6</td><td>0.5693</td><td>29.94%</td></tr>
+</tbody>
+</table>
 
-→ NDCG đỉnh ở **n=200**, không cần tăng tiếp<br>
-→ α* lệch về **semantic** (0.4) → log-entropy cho semantic vector chất lượng cao
+<div style="font-size:0.65rem; line-height:1.2; margin-top:0.4rem; opacity:0.85;">
+→ NDCG đỉnh ở <b>n=200</b>, không cần tăng tiếp<br>
+→ α* lệch về <b>semantic</b> (0.4) → log-entropy cho semantic vector chất lượng cao
+</div>
 
 </div>
 
@@ -628,26 +618,32 @@ $$\text{NDCG@k} = \frac{\text{DCG@k}}{\text{IDCG@k}}, \qquad \text{DCG@k} = \sum
 
 <div>
 
-### Best config
+<h3 style="font-size:0.95rem; margin-bottom:0.3rem;">Best config</h3>
 
-| Tham số | Giá trị |
-|---|---|
-| **Best α** | **1.0** |
-| **Best k** | **3** |
-| **Best NDCG** | **0.5667** |
-| n_topics | 50 (default) |
+<table style="font-size:0.65rem; line-height:1.1; width:100%;">
+<thead><tr><th>Tham số</th><th>Giá trị</th></tr></thead>
+<tbody>
+<tr><td><b>Best α</b></td><td><b>1.0</b></td></tr>
+<tr><td><b>Best k</b></td><td><b>3</b></td></tr>
+<tr><td><b>Best NDCG</b></td><td><b>0.5667</b></td></tr>
+<tr><td>n_topics</td><td>50 (default)</td></tr>
+</tbody>
+</table>
 
-### So sánh n_topics
+<h3 style="font-size:0.95rem; margin-top:0.6rem; margin-bottom:0.3rem;">So sánh n_topics</h3>
 
-| $K$ | best α | NDCG@10 | Perplexity |
-|---|---|---|---|
-| **10**  | **0.8** | **0.5446** | 1099.5 |
-| 20  | 1.0 | 0.5416 | 1033.1 |
-| 50  | 1.0 | 0.5416 | 983.1 |
-| 100 | 1.0 | 0.5416 | 983.2 |
+<table style="font-size:0.65rem; line-height:1.1; width:100%;">
+<thead><tr><th>K</th><th>best α</th><th>NDCG@10</th><th>Perplexity</th></tr></thead>
+<tbody>
+<tr><td><b>10</b></td><td><b>0.8</b></td><td><b>0.5446</b></td><td>1099.5</td></tr>
+<tr><td>20</td><td>1.0</td><td>0.5416</td><td>1033.1</td></tr>
+<tr><td>50</td><td>1.0</td><td>0.5416</td><td>983.1</td></tr>
+<tr><td>100</td><td>1.0</td><td>0.5416</td><td>983.2</td></tr>
+</tbody>
+</table>
 
-<div class="text-xs opacity-75">
-**α* = 1.0** nghĩa là pure BM25 — LDA không cải thiện được hybrid trên test set này
+<div style="font-size:0.65rem; line-height:1.2; margin-top:0.4rem; opacity:0.85;">
+<b>α* = 1.0</b> nghĩa là pure BM25 — LDA không cải thiện được hybrid trên test set này
 </div>
 
 </div>
