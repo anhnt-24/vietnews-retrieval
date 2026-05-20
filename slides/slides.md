@@ -13,22 +13,11 @@ mdc: true
 # Truy hồi tin tức tiếng Việt
 
 ## Hybrid BM25 + LSI · LDA · NMF
-
-<br>
-
-Báo cáo đồ án môn **Truy hồi thông tin (IR)**
-
-<br>
-
+ <br/>
 <div class="text-sm opacity-80">
-Sinh viên thực hiện · MSSV · Lớp<br>
-Giảng viên hướng dẫn: ...<br>
-Tháng 05 / 2026
+Nguyễn Tuấn Anh - Hoàng Quốc An - Phan Hà Tuấn
 </div>
 
-<div class="abs-br m-6 text-xs opacity-60">
-Dataset: VietNews 20k · 3 notebook + FastAPI demo
-</div>
 
 ---
 transition: fade-out
