@@ -102,7 +102,7 @@ layout: section
 
 ---
 
-# 2.1. BM25
+# 2.1. BM25 (Best Matching 25)
 
 ### Giới thiệu
 
@@ -127,7 +127,7 @@ $$\text{BM25}(d,q) = \sum_{t \in q} \text{IDF}(t) \cdot \frac{tf_{t,d}\,(k_1+1)}
 
 ---
 
-# 2.2. NMF
+# 2.2. NMF (Non-negative Matrix Factorization)
 
 ### Ý tưởng
 
@@ -149,7 +149,7 @@ TF-IDF đảm bảo đầu vào không âm — điều kiện tiên quyết củ
 
 ---
 
-# 2.2. NMF
+# 2.2. NMF (Non-negative Matrix Factorization)
 
 ### Bước 2: Phân rã không âm
 
@@ -179,11 +179,13 @@ $$\text{sim}_{\text{NMF}}(d, q) = \frac{\vec{h}_d \cdot \vec{h}_q}{\|\vec{h}_d\|
 
 ---
 
-# 2.3. LSI
+# 2.3. LSI (Latent Semantic Indexing)
 
 ### Ý tưởng
 
-Trước khi tìm khái niệm ẩn, **cân lại trọng số mỗi từ theo mức độ phân biệt của nó**: từ chỉ xuất hiện ở một vài tài liệu (vd: *"lãi suất"* — chỉ thấy trong bài kinh tế) được đẩy lên cao vì chúng phân biệt chủ đề tốt; từ rải đều khắp mọi tài liệu (vd: *"người", "ngày", "có"*) bị hạ xuống thấp vì không nói lên điều gì. Sau khi cân trọng số, ma trận được nén lại để gom các từ thường đi cùng nhau thành cùng khái niệm — kết quả phản ánh đúng những từ **thực sự đặc trưng cho chủ đề**.
+Những từ thường xuyên xuất hiện cùng nhau (**co-occurrence**) trong cùng một ngữ cảnh thì sẽ có mối quan hệ mật thiết về mặt ngữ nghĩa.
+
+LSI không nhìn từ ngữ một cách riêng lẻ, nó nhìn vào **mối quan hệ không gian** giữa các từ và các văn bản.
 
 ### Bước 1a: Local weight (trọng số nội tại)
 
@@ -209,7 +211,7 @@ $$G_i = 1 + \frac{\sum_j p_{ij} \log p_{ij}}{\log N}, \quad p_{ij} = \frac{tf_{i
 
 ---
 
-# 2.3. LSI
+# 2.3. LSI (Latent Semantic Indexing)
 
 ### Bước 2: Weighted matrix
 
@@ -239,7 +241,7 @@ $$A_{m \times n} \approx U_k \, \Sigma_k \, V_k^T$$
 
 ---
 
-# 2.4. LDA
+# 2.4. LDA (Latent Dirichlet Allocation)
 
 ### Ý tưởng
 
@@ -256,7 +258,7 @@ Với mỗi tài liệu $d$:
 
 ---
 
-# 2.4. LDA
+# 2.4. LDA (Latent Dirichlet Allocation)
 
 ### Huấn luyện mô hình
 
